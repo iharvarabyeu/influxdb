@@ -319,10 +319,10 @@ func (m *Launcher) run(ctx context.Context, opts *InfluxdOpts) (err error) {
 		log.Fatal(err)
 	}
 
-	s := sqliteMigration.SqliteMigrator{
+	_ = sqliteMigration.SqliteMigrator{
 		DB: db,
 	}
-	s.Up()
+	// s.Up()
 
 	m.reg = prom.NewRegistry(m.log.With(zap.String("service", "prom_registry")))
 	m.reg.MustRegister(
