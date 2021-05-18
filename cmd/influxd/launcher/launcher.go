@@ -3,9 +3,11 @@ package launcher
 import (
 	"context"
 	"crypto/tls"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	nethttp "net/http"
 	"os"
@@ -57,6 +59,7 @@ import (
 	"github.com/influxdata/influxdb/v2/session"
 	"github.com/influxdata/influxdb/v2/snowflake"
 	"github.com/influxdata/influxdb/v2/source"
+	sqliteMigration "github.com/influxdata/influxdb/v2/sqlite/migration"
 	"github.com/influxdata/influxdb/v2/storage"
 	storageflux "github.com/influxdata/influxdb/v2/storage/flux"
 	"github.com/influxdata/influxdb/v2/storage/readservice"
@@ -72,9 +75,11 @@ import (
 
 	// needed for tsm1
 	_ "github.com/influxdata/influxdb/v2/tsdb/engine/tsm1"
-
+	// sqlite3 driver
+	_ "github.com/mattn/go-sqlite3"
 	// needed for tsi1
 	_ "github.com/influxdata/influxdb/v2/tsdb/index/tsi1"
+
 	authv1 "github.com/influxdata/influxdb/v2/v1/authorization"
 	iqlcoordinator "github.com/influxdata/influxdb/v2/v1/coordinator"
 	"github.com/influxdata/influxdb/v2/v1/services/meta"
@@ -305,6 +310,16 @@ func (m *Launcher) run(ctx context.Context, opts *InfluxdOpts) (err error) {
 		m.log.Error("Failed to apply migrations", zap.Error(err))
 		return err
 	}
+
+	// see what happens when we do this...
+
+	// Open database connection
+	db, err := sql.Open("sqlite3", "file::memory:?cache=shared")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sqliteMigration.Up(db)
 
 	m.reg = prom.NewRegistry(m.log.With(zap.String("service", "prom_registry")))
 	m.reg.MustRegister(
