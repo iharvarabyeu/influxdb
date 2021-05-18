@@ -3,12 +3,18 @@ package migration
 import (
 	"database/sql"
 	"log"
+	"sync"
 
 	"github.com/lopezator/migrator"
 )
 
+type SqliteMigrator struct {
+	mu sync.Mutex
+	DB *sql.DB
+}
+
 // Up runs the migrations
-func Up(db *sql.DB) {
+func (s *SqliteMigrator) Up() {
 	// Configure migrations
 	m, err := migrator.New(
 		migrator.Migrations(
@@ -28,7 +34,9 @@ func Up(db *sql.DB) {
 	}
 
 	// Migrate up
-	if err := m.Migrate(db); err != nil {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if err := m.Migrate(s.DB); err != nil {
 		log.Fatal(err)
 	}
 }
