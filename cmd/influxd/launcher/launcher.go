@@ -314,15 +314,15 @@ func (m *Launcher) run(ctx context.Context, opts *InfluxdOpts) (err error) {
 	// see what happens when we do this...
 
 	// Open database connection
-	db, err := sql.Open("sqlite3", "file::memory:?cache=shared")
+	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	_ = sqliteMigration.SqliteMigrator{
+	s := sqliteMigration.SqliteMigrator{
 		DB: db,
 	}
-	// s.Up()
+	s.Up()
 
 	m.reg = prom.NewRegistry(m.log.With(zap.String("service", "prom_registry")))
 	m.reg.MustRegister(
