@@ -1,5 +1,6 @@
 ## unreleased
 
+
 ### Features
 
 1. [19811](https://github.com/influxdata/influxdb/pull/19811): Add Geo graph type to be able to store in Dashboard cells.
